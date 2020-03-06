@@ -7,8 +7,8 @@ import datetime
 
 # -*- coding: utf-8 -*-
 
-ID = "t192409"
-PASSWD = "1324ikkei"
+ID = ""
+PASSWD = ""
 URL = "https://uumail.cc.utsunomiya-u.ac.jp/am_bin/amlogin  "
 URL_LOGIN = "https://uumail.cc.utsunomiya-u.ac.jp/am_bin/amlogin/login_auth"
 URL_LOGOUT = "https://uumail.cc.utsunomiya-u.ac.jp/am_bin/amlogin/logout"
