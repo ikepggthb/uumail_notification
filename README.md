@@ -2,7 +2,7 @@
 
 uumailを受信したことをWindowsPCに通知します。
 
-Version
+Version\n
 -0.1 beta1 UUmailを受信すると、win10のトースト通知機能によって通知されます。
 
 
