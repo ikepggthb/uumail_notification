@@ -6,7 +6,7 @@ uumailが受信されたことをWindowsPCに通知します。
   -0.1 beta1 uumailを受信すると、Win10のトースト通知機能によって通知されます。<br>
 
 
-##environment<br>
+##Environment<br>
   OS : Windows10のみ（Windows10以前では動きません。)<br>
   ※Mac,Android,iOSなどは非対応（Androidにはいずれ対応させます。）<br>
   
