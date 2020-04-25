@@ -7,7 +7,7 @@ uumailを受信したことをWindowsPCに通知します。
 
 
 ##environment<br>
-  OS : windows10のみ（windows10以前では動きません。)<br>
+  OS : Windows10のみ（Windows10以前では動きません。)<br>
   ※mac,android,iosなどは非対応（いずれ対応させます。）<br>
   
 ##Note<br>
