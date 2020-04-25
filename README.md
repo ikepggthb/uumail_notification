@@ -8,7 +8,7 @@ uumailを受信したことをWindowsPCに通知します。
 
 ##environment<br>
   OS : Windows10のみ（Windows10以前では動きません。)<br>
-  ※Mac,Android,iOSなどは非対応（いずれ対応させます。）<br>
+  ※Mac,Android,iOSなどは非対応（Androidにはいずれ対応させます。）<br>
   
 ##Note<br>
 現在はソースコードのみ公開しています。（ビルドすると動作不安定なため）<br>
