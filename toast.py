@@ -20,7 +20,7 @@ def toast(title,content):
     xml_f = xml_template1+title+xml_template2+content+xml_template3
     with open('toast\\test.xml', mode='w', encoding='shift-jis') as f:
         f.write(xml_f)
-    cmdresult = "toast\\powershellLauncher.vbs toast\\toaster.ps1 toast\\test.xml"
+    cmdresult = "toast\\ps_launcher.vbs toast\\toaster.ps1 toast\\toast.xml"
     subprocess.Popen(cmdresult, shell=True)
     return 0
 
