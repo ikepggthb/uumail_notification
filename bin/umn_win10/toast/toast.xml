@@ -1,0 +1,9 @@
+<toast scenario="reminder">
+    <visual>
+        <binding template="ToastGeneric">
+            <text>uumail</text>
+	        <text>V’…ƒ[ƒ‹‚Í‚ ‚è‚Ü‚¹‚ñ</text>
+	        <image placement="appLogoOverride" hint-crop="circle" src="C:\Users\ikkei\VSCode\uumail_notification\bin\umn_win10\toast\uumail.ico"/>
+        </binding>
+    </visual>
+</toast>
