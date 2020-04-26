@@ -2,9 +2,8 @@ import requests
 import time
 import re
 import datetime
-from plyer import notification
 from getpass import getpass
-
+import toast
 
 # -*- coding: utf-8 -*-
 
@@ -88,11 +87,11 @@ def uumail():
 
         if type(result_get_info) is str: # もし、get_info関数がエラーならば、その返り値は整数型
             print(dt_now_str_all, ":",result_get_info)
-            notification.notify(title='uumail',message=dt_now_str+"\n"+result_get_info,app_name='UUmail通知')
+            toast.toast("uumail",result_get_info)
             return
         else : # get_info関数がエラー
             print(dt_now_str_all, ":",MESSAGE_ERROR[result_get_info])
-            notification.notify(title='uumail',message=dt_now_str+"\n"+MESSAGE_ERROR[result_get_info],app_name='UUmail通知')
+            toast.toast("uumail",MESSAGE_ERROR[result_get_info])
         i += 1
         time.sleep(3)
     print("5回失敗しました")
