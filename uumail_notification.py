@@ -38,6 +38,7 @@ def get_info():
     try:
         response = session.get(URL, timeout=(3.0, 8))
         # ログインurlにdataをPOST
+        time.sleep(3)
         login = session.post(URL_LOGIN, data=LOGIN_DATA, timeout=(3.0, 8))
         # ログイン後のソースを取得
         login_redirect_code = login.text
@@ -45,6 +46,8 @@ def get_info():
         # 取得したコードのJavascript内にある"self.location.href="のあとのURLを取得
         temp = re.search('self.location.href=\".*?\"', login_redirect_code)
         redirect_url = login_redirect_code[temp.start() + 20: temp.end() - 1]
+
+        time.sleep(5)
 
         # リダイレクト
         session.get(redirect_url, timeout=(3.0, 8))
@@ -60,6 +63,7 @@ def get_info():
 
     try:
         # homeへアクセス
+        time.sleep(5)
         page = session.get(redirect_url.replace("top", "home"))
         # 新着メール情報
         mail_info_code = re.search("<div class=\"mail_recent shadow\">(.|\s)*?</div>", page.text)
@@ -71,36 +75,45 @@ def get_info():
     except:
         return FAIL_GET_INFO
 
-    # logout処理
-    logout_url = URL_LOGOUT + "?id=" + session_id
-    logout = session.get(logout_url, timeout=(3.0, 8))
+    try:
+        # logout処理
+        logout_url = URL_LOGOUT + "?id=" + session_id
+        time.sleep(5)
+        logout = session.get(logout_url, timeout=(3.0, 8))
+    except:
+        return mail_info
 
     return mail_info
 
-def uumail():
+def notification(content):
+    dt_now = datetime.datetime.now()
+    dt_now_str = dt_now.strftime('%H:%M')
+    dt_now_str_all = dt_now.strftime('%Y年%m月%d日 %H:%M:%S')
+    print(dt_now_str_all, ":",content)
+    toast.toast("uumail", content)
+
+
+def uumail(result_get_info_last):
     i = 0
     while i < 5:
         result_get_info = get_info()
-        dt_now = datetime.datetime.now()
-        dt_now_str = dt_now.strftime('%H:%M')
-        dt_now_str_all = dt_now.strftime('%Y年%m月%d日 %H:%M:%S')
-
-        if type(result_get_info) is str: # もし、get_info関数がエラーならば、その返り値は整数型
-            print(dt_now_str_all, ":",result_get_info)
-            toast.toast("uumail",result_get_info)
-            return
-        else : # get_info関数がエラー
-            print(dt_now_str_all, ":",MESSAGE_ERROR[result_get_info])
-            toast.toast("uumail",MESSAGE_ERROR[result_get_info])
+        if type(result_get_info) is str:    #　取得成功したならば
+            if result_get_info != result_get_info_last:
+                notification(result_get_info)
+            return result_get_info
         i += 1
-        time.sleep(3)
+        time.sleep(5)
     print("5回失敗しました")
+    notification(MESSAGE_ERROR[result_get_info])
+    return result_get_info
+
 
 time_start = time.time()
 i = 0
+last_info = None
 while True:
     timer = time.time()
     if timer >= time_start + OFTEN * i:
-        uumail()
+        last_info = uumail(last_info)
         i += 1
     time.sleep(10)
