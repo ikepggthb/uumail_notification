@@ -25,7 +25,7 @@ https://drive.google.com/drive/folders/1gcDD2wZ6LU6w51_D2wKEt_Q42xRsdvsG?usp=sha
 設定画面を表示するには、"setting.exe"を実行してください。
 <br>
 "uumail_notification.exe"を起動すると新着メールの同期が行われます。<br>
-（WARNING！！）多重起動は絶対にしないでください！サーバーに負担がかかります。
+（WARNING！！）多重起動は絶対にしないでください！サーバーに負担がかかります。<br>
 終了するには、"exit.exe"を実行してください。<br>
 <br>
 （注）設定は"uumail_notification.exe"を終了させないと反映されません。<br>
