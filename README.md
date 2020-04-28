@@ -1,6 +1,7 @@
 # uumail notification
 
 uumailが受信されたことをWindowsPCに通知します。
+多重起動は絶対にしないでください！サーバーに負担がかかります。
 
 ##Version<br>
   -v0.1 beta1 uumailを受信すると、Win10のトースト通知機能によって通知されます。<br>
