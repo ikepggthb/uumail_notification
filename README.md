@@ -32,6 +32,6 @@ https://drive.google.com/drive/folders/1gcDD2wZ6LU6w51_D2wKEt_Q42xRsdvsG?usp=sha
 （注）設定画面のアカウントの状態は、設定画面を再起動しないと反映されません（次のバージョンで対応します。）<br>
 <br>
 ※アカウント情報の取得に失敗し、アカウントの設定をしたら再度起動してください<br>
-※pyinstallerの仕様上、反応が鈍いことがあります。（特にアカウントの設定画面に起動など）<br>
+※pyinstallerの仕様上、反応が鈍いことがあります。（特にアカウントの設定画面の起動など）<br>
 ※uumail_notification.exeをスタートアップに設定すると、PC起動時に自動的にuumail_notification.exeが実行され、常に新着メール通知を確認できるのでとても非常に便利です。<br>
 
