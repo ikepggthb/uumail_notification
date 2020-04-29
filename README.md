@@ -32,5 +32,5 @@ uumailが受信されたことをWindowsPCに通知します。
 - 設定は"uumail_notification.exe"を終了させないと反映されません。
 - ※アカウント情報の取得に失敗し、アカウントの設定をしたら再度起動してください
 - ※pyinstallerの仕様上、反応が鈍いことがあります。（特にアカウントの設定画面に起動など)
-- ※uumail_notification.exeをスタートアップに設定すると、PC起動時に自動的にuumail_notification.exeが実行され、常に新着メール通知を確認できるのでとても非常に便利です。
+- ※uumail_notification.exeをスタートアップに設定すると、PC起動時に自動的にuumail_notification.exeが実行され、常に新着メール通知を確認できるのでとても便利です。
 
