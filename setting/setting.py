@@ -105,7 +105,7 @@ def restart_umn():
 def reflect_auto_startup():
     start_up = auto_startup.get()
     if start_up == True and startup_exist == False:
-        subprocess.run(DIR_UMN + "\\startup.vbs", shell=True)
+        subprocess.run(DIR_UMN + "\\setting\\startup.vbs", shell=True)
     elif start_up == False and startup_exist == True:
         subprocess.run(["del", umn_config.PARH_STARTUP], shell=True)
 
