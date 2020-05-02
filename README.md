@@ -23,7 +23,7 @@ uumailが受信されたことをWindowsPCに通知します。
 
 - 利用するには、
 <https://drive.google.com/drive/folders/1gcDD2wZ6LU6w51_D2wKEt_Q42xRsdvsG?usp=sharing>
-へアクセスし、"uumail_notification.zip"をダウンロードして任意の場所に展開してください。
+へアクセスし、"uumail_notification_1.0.zip"をダウンロードして任意の場所に展開してください。
 - 最初に設定を行ってください。
 - 設定画面を表示するには、"setting.exe"を実行してください。
 - "uumail_notification.exe"を起動すると新着メールの同期が行われます。
