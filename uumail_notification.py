@@ -6,10 +6,14 @@ import tkinter
 from tkinter import messagebox
 import sys
 import subprocess
+import win32api
+import win32event
+import winerror
+import pywintypes
 
 import toast
-from settings import passcrypt
-from settings import umn_config
+from setting import passcrypt
+from setting import umn_config
 
 
 # -*- coding: utf-8 -*-
@@ -19,12 +23,15 @@ root = tkinter.Tk()
 root.withdraw()
 
 # 多重起動確認
-cmd = "tasklist"
-a = subprocess.run(cmd, check=True, shell=True, stdout=subprocess.PIPE)
-double_startup = "uumail_notification" in  str(a)
-if double_startup is True:
-    messagebox.showinfo('uumail notification - エラー',  '既に起動しています。\n終了します。')
-    sys.exit(1)
+
+UNIQUE_MUTEX_NAME = 'Global\\MyProgramIsAlreadyRunning'
+
+handle = win32event.CreateMutex(None, pywintypes.FALSE, UNIQUE_MUTEX_NAME)
+
+if not handle or win32api.GetLastError() == winerror.ERROR_ALREADY_EXISTS:
+    print('既に別のプロセスが実行中です。', file=sys.stderr)
+    messagebox.showinfo('uumail notification - エラー',  '既に常駐しています\n')
+    sys.exit(-1)
 
 # 設定取得
 CONFIG = umn_config.read_config()
@@ -37,7 +44,7 @@ except:
     if q == "yes":
         cmd = "setting\\setting.exe"
         subprocess.Popen(cmd, shell=True)
-    messagebox.showinfo('uumail notification - エラー', '終了します')
+    messagebox.showinfo('uumail notification', '終了します')
     sys.exit(1)
 
 
