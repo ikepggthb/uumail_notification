@@ -19,6 +19,7 @@ ctypes.windll.shcore.SetProcessDpiAwareness(1)
 DIR_UMN = os.getcwd()
 if DIR_UMN[-7:] == "setting":
     DIR_UMN = DIR_UMN[:-8]
+    os.chdir('..')
 
 # ID,PASS入力画面を2つ以上起動させないために
 account_setting_open = False
