@@ -1,4 +1,4 @@
-pyinstaller --onefile  --icon=icon/uumail.ico uumail_notification.py --hidden-import pkg_resources --hidden-import infi.systray
+pyinstaller --onefile --noconsole --icon=icon/uumail.ico uumail_notification.py --hidden-import pkg_resources --hidden-import infi.systray
 cd setting
 pyinstaller --noconsole --icon=../icon/uumail.ico setting.py
 cd ..

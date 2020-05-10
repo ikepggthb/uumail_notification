@@ -1,11 +1,14 @@
 import json
 import os
 from os.path import expanduser
+import subprocess
 
 DIR_HOME = expanduser("~")
 DIR_CONFIG =  DIR_HOME + '\\AppData\\Roaming\\uumail_notification\\settings'
 PATH_CONFIG = DIR_CONFIG + '\\config.json'
-PARH_STARTUP = DIR_HOME +"\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\uumail_notification.lnk"
+PARH_STARTUP = DIR_HOME + "\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\uumail_notification.lnk"
+PATH_SETTING = "setting\\setting.exe"
+PATH_ICON = "icon\\uumail.ico"
 
 default_config = {'sync_interval': '60'}
 
@@ -27,3 +30,9 @@ def read_config():
 
 def exist_startup():
     return os.path.exists(PARH_STARTUP)
+
+icon = "icon\\uumail.ico"
+
+def open_setting():
+    cmd = PATH_SETTING
+    subprocess.Popen(cmd, shell=True)
