@@ -150,5 +150,3 @@ def notify_daemon():
             last_info = notify_uumail(last_info)
             i += 1
         time.sleep(10)
-notification("タスクトレイに常駐します。")
-
