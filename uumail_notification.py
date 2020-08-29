@@ -35,9 +35,25 @@ if not handle or win32api.GetLastError() == winerror.ERROR_ALREADY_EXISTS:
     print('既に別のプロセスが実行中です。', file=sys.stderr)
     win32api.MessageBox(0, u"既に常駐しています", u"uumail notification - エラー", win32con.MB_OK | win32con.MB_ICONERROR)
     sys.exit(-1)
+    
+# 設定、アカウント情報読み込み 
+from setting import passcrypt
+from setting import umn_config
+CONFIG = umn_config.read_config()
+try:
+    ACCOUNT_DATA = passcrypt.read_data()
+except:
+    q = win32api.MessageBox(0, u"アカウント情報の取得に失敗しました\nアカウントを設定しますか", u"uumail notification - エラー", win32con.MB_YESNO | win32con.MB_ICONERROR)
+    if q == win32con.IDYES:
+        umn_config.open_setting()
+    win32api.MessageBox(0, u"終了します。", u"uumail notification - エラー", win32con.MB_OK | win32con.MB_ICONERROR)
+    sys.exit(1)
+ID = ACCOUNT_DATA[0]
+PASSWD = ACCOUNT_DATA[1]
+SYNC_INTERVAL = 60 * int(CONFIG['sync_interval']) # 秒
 
-thread_notify = threading.Thread(target=notification_daemon.notify_daemon)
-thread_notify.setDaemon(True)
-thread_notify.start()
+
+reg_notify = notification_daemon.Regularly_notify(ACCOUNT_DATA[0],ACCOUNT_DATA[1],SYNC_INTERVAL)
+reg_notify.start()
 
 umn_systray.task_tray()
