@@ -133,11 +133,12 @@ def reflect_auto_startup():
 
 def save():
     new_config = {
-        'sync_interval' :  sync_interval_option[cb_sync_interval.get()]
+        'sync_interval' :  sync_interval_option[cb_sync_interval.get()],
+        'DontNotify_NoMail' : tkBool_DontNotify_NoMail.get()
         }
     root.destroy()
     reflect_auto_startup()
-    change_config = config != new_config or change_account
+    change_config = (config != new_config) or change_account
     if change_config :
         umn_config.write_config(new_config)
         if running_umn() :
@@ -193,7 +194,7 @@ font_content = ("メイリオ", 10)
 root = tkinter.Tk()
 root.title(u"uumail notification - 設定")
 x_root = 600
-y_root = 550
+y_root = 620
 root.geometry(str(x_root)+"x"+str(y_root))
 root.configure(bg=None)
 #root.attributes("-alpha",0.8)
@@ -263,9 +264,20 @@ auto_startup.set(startup_exist)
 chk_startup = tkinter.Checkbutton(frame, variable=auto_startup, text='起動時に自動的に実行する。',font = font_content,bg=bg_color)
 chk_startup.place(x=x_header + 40, y=y_auto_startup + 40)
 
+y_notify = 360
+label_notify = tkinter.Label(frame,text=u'通知',font = font_header,bg=bg_color)
+label_notify.place(x=x_header, y=y_notify)
+
+DontNotify_NoMail = bool(config['DontNotify_NoMail'])
+tkBool_DontNotify_NoMail = tkinter.BooleanVar()
+tkBool_DontNotify_NoMail.set(DontNotify_NoMail)
+chk_DontNotify_NoMail = tkinter.Checkbutton(frame, variable=tkBool_DontNotify_NoMail, text='メールがないときは通知しない',font = font_content,bg=bg_color)
+chk_DontNotify_NoMail.place(x=x_header + 40, y=y_notify + 40)
+
 button_cancel = tkinter.Button(root,text="キャンセル",font=font_content,width=10,command=cancel)
 button_cancel.place(x=x_root - 210, y=y_root - 50)
 button_save = tkinter.Button(root,text="OK",font=font_content,width=10,command=save)
 button_save.place(x=x_root - 110, y=y_root - 50)
+
 
 root.mainloop()

@@ -19,13 +19,8 @@
 import requests
 import time
 import re
-import datetime
-import sys
-import subprocess
-import win32api
-import win32.lib.win32con as win32con
-
 import toast
+import threading
 
 def notification(content):
     toast.toast("uumail", content)
@@ -36,7 +31,8 @@ class Regularly_notify(threading.Thread):
         self.id = uumail_id
         self.passwd = uumail_pass
         self.interval = sync_interval
-        self.url = "https://uumail.cc.utsunomiya-u.ac.jp/am_bin/amlogin  "
+        self.DontNotify_NoMail = False
+        self.url = "https://uumail.cc.utsunomiya-u.ac.jp/am_bin/amlogin"
         self.url_login = "https://uumail.cc.utsunomiya-u.ac.jp/am_bin/amlogin/login_auth"
         self.url_logout = "https://uumail.cc.utsunomiya-u.ac.jp/am_bin/amlogin/logout"
         self.login_data = {
@@ -110,9 +106,11 @@ class Regularly_notify(threading.Thread):
 
     def notify_uumail(self):
         i = 0
+        nomail_info = "新着メールはありません"
         while i < 5:
             if self.get():
-                if self.obt_info != self.last_info:
+                print(bool(self.obt_info == nomail_info))
+                if not ( ( self.DontNotify_NoMail and (self.obt_info==nomail_info) ) or (self.obt_info == self.last_info) ) :
                     notification(self.obt_info)
                     self.last_info = self.obt_info
                 return True
@@ -125,7 +123,6 @@ class Regularly_notify(threading.Thread):
     def run(self):
         time_start = time.time()
         i = 0
-        notification("タスクトレイに常駐します。")
         while True:
             timer = time.time()
             if timer >= time_start + self.interval * i:

@@ -10,7 +10,7 @@ PARH_STARTUP = DIR_HOME + "\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\P
 PATH_SETTING = "setting\\setting.exe"
 PATH_ICON = "icon\\uumail.ico"
 
-default_config = {'sync_interval': '60'}
+default_config = {'sync_interval': '60','DontNotify_NoMail' : 'True'}
 
 os.makedirs(DIR_CONFIG, exist_ok=True)
 
@@ -23,6 +23,10 @@ def read_config():
     try:
         with open(PATH_CONFIG) as f:
             config = json.load(f)
+        
+        # キーが存在しなければ、エラーを吐いて、except文へ（設定ファイル作り直し）
+        config['sync_interval']
+        config['DontNotify_NoMail']
     except:
             config = default_config
             write_config(config)

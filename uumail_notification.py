@@ -29,7 +29,7 @@ import notification_daemon
 import umn_systray
 
 # 多重起動確認
-UNIQUE_MUTEX_NAME = 'Global\\MyProgramIsAlreadyRunning'
+UNIQUE_MUTEX_NAME = 'Global\\UmnIsAlreadyRunning'
 handle = win32event.CreateMutex(None, pywintypes.FALSE, UNIQUE_MUTEX_NAME)
 if not handle or win32api.GetLastError() == winerror.ERROR_ALREADY_EXISTS:
     print('既に別のプロセスが実行中です。', file=sys.stderr)
@@ -54,6 +54,7 @@ SYNC_INTERVAL = 60 * int(CONFIG['sync_interval']) # 秒
 
 
 reg_notify = notification_daemon.Regularly_notify(ACCOUNT_DATA[0],ACCOUNT_DATA[1],SYNC_INTERVAL)
+reg_notify.DontNotify_NoMail = bool(CONFIG['DontNotify_NoMail'])
 reg_notify.start()
 
 umn_systray.task_tray()
