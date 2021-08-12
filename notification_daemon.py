@@ -22,16 +22,19 @@ import re
 import toast
 import threading
 
+from PySide6 import QtCore, QtWidgets, QtGui
+
 def notification(content):
     toast.toast("uumail", content)
 
 class Regularly_notify(threading.Thread):
-    def __init__(self,uumail_id,uumail_pass,sync_interval):
+    def __init__(self,uumail_id,uumail_pass,sync_interval,systray = None):
         super(Regularly_notify, self).__init__()
         self.id = uumail_id
         self.passwd = uumail_pass
         self.interval = sync_interval
         self.DontNotify_NoMail = False
+        self.systray = systray
         self.url = "https://uumail.cc.utsunomiya-u.ac.jp/am_bin/amlogin"
         self.url_login = "https://uumail.cc.utsunomiya-u.ac.jp/am_bin/amlogin/login_auth"
         self.url_logout = "https://uumail.cc.utsunomiya-u.ac.jp/am_bin/amlogin/logout"
@@ -50,6 +53,13 @@ class Regularly_notify(threading.Thread):
         }
         self.last_info = None
         self.setDaemon(True)
+
+    def notification(self,msg):
+        if self.systray is None:
+            print(msg)
+        else:
+            self.systray.showMessage("uumail", msg,QtWidgets.QSystemTrayIcon.Information)
+    
     def get(self):
         # セッションの作成
         session = requests.session()
@@ -109,15 +119,14 @@ class Regularly_notify(threading.Thread):
         nomail_info = "新着メールはありません"
         while i < 5:
             if self.get():
-                print(bool(self.obt_info == nomail_info))
                 if not ( ( self.DontNotify_NoMail and (self.obt_info==nomail_info) ) or (self.obt_info == self.last_info) ) :
-                    notification(self.obt_info)
+                    self.notification(self.obt_info)
                     self.last_info = self.obt_info
                 return True
             i += 1
             time.sleep(5)
         # 5回失敗
-        notification(self.obt_info)
+        self.notification(self.obt_info)
         return False
 
     def run(self):
