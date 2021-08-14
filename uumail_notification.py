@@ -41,16 +41,39 @@ class about_window(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("uumail notification について")
-        self.setFixedSize(600,400)
+        self.setFixedSize(600,370)
         self.setWindowFlags(QtCore.Qt.Dialog|QtCore.Qt.WindowStaysOnTopHint)
         self.label = QtWidgets.QLabel(self)
         self.label_style = """QLabel {
-            font-size: 50px;               /* 文字サイズ */
-            padding: 0px 80px;
+            font-size: 43px;               /* 文字サイズ */
+            padding: 0px 40px;
         }"""
+        self.font = QtGui.QFont()
+        self.font.setPointSize(13)
         self.label.setStyleSheet(self.label_style)
         self.label.setText("uumail notification")
-        self.label.setGeometry(0,0,600,120)
+        self.label.setGeometry(QtCore.QRect(120,0,480,120))
+        self.umnlogo_image = QtGui.QImage('icon\\uumail.png')
+        self.umnlogo_pixmap = QtGui.QPixmap.fromImage(self.umnlogo_image.scaledToHeight(120))
+        self.umnlogo_label = QtWidgets.QLabel(self)
+        self.umnlogo_label.setPixmap(self.umnlogo_pixmap)
+        self.umnlogo_label.setGeometry(QtCore.QRect(0,0,120,120))
+        self.varsion_txt = QtWidgets.QLabel(self)
+        self.varsion_txt.setText("Version  :  2.0")
+        self.varsion_txt.setFont(self.font)
+        self.varsion_txt.setGeometry(QtCore.QRect(40,150,500,30))
+        self.github_txt = QtWidgets.QLabel(self)
+        self.github_txt.setText("Github : https://github.com/ikepggthb/uumail_notification")
+        self.github_txt.setFont(self.font)
+        self.github_txt.setGeometry(QtCore.QRect(40,190,500,30))
+        self.licence_txt = QtWidgets.QLabel(self)
+        self.licence_txt.setText("オープンソースソフトウェア(OSS)であり、GPLv3の条件で許諾されます。\nこのソフトウェアを使用、複製、配布、ソースコードを修正することができます。")
+        self.licence_txt.setFont(self.font)
+        self.licence_txt.setGeometry(QtCore.QRect(40,230,500,45))
+        self.cpn_txt = QtWidgets.QLabel(self)
+        self.cpn_txt.setText( "© 2020 ikkei Yamada All Rights Reserved.\n	Twitter : @idkaeti , Email : ikeprg@gmail.com")
+        self.cpn_txt.setFont(self.font)
+        self.cpn_txt.setGeometry(QtCore.QRect(40,290,500,45))
     # closeEventをオーバーライド ウィンドウを閉じたとき、アプリが終了しないようにするため
     def closeEvent(self, event):
         self.hide()
