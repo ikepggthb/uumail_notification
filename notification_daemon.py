@@ -19,33 +19,21 @@
 import requests
 import time
 import re
-import toast
 import threading
 
 from PySide6 import QtCore, QtWidgets, QtGui
 
-def notification(content):
-    toast.toast("uumail", content)
+# 設定、アカウント情報読み込み 
+from setting import passcrypt
+from setting import umn_config
 
 class Regularly_notify(threading.Thread):
-    def __init__(self,uumail_id,uumail_pass,sync_interval,systray = None):
+    def __init__(self,systray = None):
         super(Regularly_notify, self).__init__()
-        self.id = uumail_id
-        self.passwd = uumail_pass
-        self.interval = sync_interval
-        self.DontNotify_NoMail = False
         self.systray = systray
         self.url = "https://uumail.cc.utsunomiya-u.ac.jp/am_bin/amlogin"
         self.url_login = "https://uumail.cc.utsunomiya-u.ac.jp/am_bin/amlogin/login_auth"
         self.url_logout = "https://uumail.cc.utsunomiya-u.ac.jp/am_bin/amlogin/logout"
-        self.login_data = {
-            'login_page_lang': 'ja',
-            'charset': 'UTF-8',
-            'am_authid': self.id,
-            'am_authpasswd': self.passwd,
-            'language': 'auto',
-            'ajax': 'on'
-        }
         self.message = {
             "FAIL_ACSESS"   : "アクセスに失敗しました",
             "WRONG_DATA"    : "IDやパスワードが違う可能性があります",
@@ -53,12 +41,30 @@ class Regularly_notify(threading.Thread):
         }
         self.last_info = None
         self.setDaemon(True)
+    def read_config(self):
+        try:
+            ACCOUNT_DATA = passcrypt.read_data()
+            CONFIG = umn_config.read_config()
+            self.id = ACCOUNT_DATA[0]
+            self.passwd = ACCOUNT_DATA[1]
+            self.interval = 60 * int(CONFIG['sync_interval']) # 秒
+            self.DontNotify_NoMail = bool(CONFIG['DontNotify_NoMail'])
+            self.login_data = {
+                'login_page_lang': 'ja',
+                'charset': 'UTF-8',
+                'am_authid': self.id,
+                'am_authpasswd': self.passwd,
+                'language': 'auto',
+                'ajax': 'on'
+            }
+        except:
+            self.id = None
 
-    def notification(self,msg):
+    def notification(self,msg,title="uumail",info_type=QtWidgets.QSystemTrayIcon.Information):
         if self.systray is None:
             print(msg)
         else:
-            self.systray.showMessage("uumail", msg,QtWidgets.QSystemTrayIcon.Information)
+            self.systray.showMessage(title, msg,info_type)
     
     def get(self):
         # セッションの作成
@@ -119,6 +125,7 @@ class Regularly_notify(threading.Thread):
         nomail_info = "新着メールはありません"
         while i < 5:
             if self.get():
+                print(self.obt_info)
                 if not ( ( self.DontNotify_NoMail and (self.obt_info==nomail_info) ) or (self.obt_info == self.last_info) ) :
                     self.notification(self.obt_info)
                     self.last_info = self.obt_info
@@ -130,12 +137,19 @@ class Regularly_notify(threading.Thread):
         return False
 
     def run(self):
+        self.read_config()
+        while True:
+            if not self.id is None:
+                break
+            self.read_config()
+            time.sleep(3)
         time_start = time.time()
         i = 0
         while True:
             timer = time.time()
             if timer >= time_start + self.interval * i:
                 self.notify_uumail()
+                self.read_config()
                 i += 1
             time.sleep(10)
 

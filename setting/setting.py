@@ -1,283 +1,282 @@
-# uumail notification
-#
-# © 2020 Ikkei Yamada All Rights Reserved.
-# Twitter: @idkaeti
-# Email  : ikeprg@gmail.com
-
-
-#   Released under the GPLv3 license.
-#
-#   "uumail_notification" is free software: you can redistribute it and/or modify
-#   it under the terms of the GNU General Public License as published by
-#   the Free Software Foundation, either version 3 of the License, or
-#   (at your option) any later version.
-#   "uumail_notification" is distributed in the hope that it will be useful,
-#   but WITHOUT ANY WARRANTY; without even the implied warranty of
-#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#   GNU General Public License for more details.
-#   You should have received a copy of the GNU General Public License
-#   along with "uumail_notification".  If not, see <http://www.gnu.org/licenses/>.
-
 import sys
-import tkinter
-import tkinter.ttk
-import ctypes
-import subprocess
-from tkinter import messagebox
+from PySide6 import QtCore, QtWidgets, QtGui
 import re
 import shutil
 import time
 import os
-
-import umn_config
-import passcrypt
-
-
-# windowsのディスプレイ拡大率によるボケ防止
-ctypes.windll.shcore.SetProcessDpiAwareness(1)
-
 DIR_UMN = os.getcwd()
 if DIR_UMN[-7:] == "setting":
     DIR_UMN = DIR_UMN[:-8]
     os.chdir('..')
 
-# ID,PASS入力画面を2つ以上起動させないために
-account_setting_open = False
+from setting import umn_config, passcrypt
+import subprocess
 
-change_account = False
 
-def account_setting():
 
-    global account_setting_open
 
-    def collect_login_data(ID, PASSWD):
+class account_setting_window(QtWidgets.QDialog):
+    def __init__(self,setting_window):
+        super().__init__()
+        self.icon = QtGui.QIcon(umn_config.PATH_ICON)
+        self.setWindowIcon(self.icon)
+        self.setting_window = setting_window
+        # root
+        self.setFixedSize(330,100)
+        self.setWindowTitle("uumail notification - アカウントを設定する")
+        self.setWindowFlags(QtCore.Qt.Dialog|QtCore.Qt.WindowStaysOnTopHint)
+
+        # widget
+        self.label_id = QtWidgets.QLabel(self)
+        self.label_id.setText("ID")
+        self.input_id = QtWidgets.QLineEdit(self)
+        self.label_pass = QtWidgets.QLabel(self)
+        self.label_pass.setText("パスワード")
+        self.input_pass = QtWidgets.QLineEdit(self)
+        self.input_pass.setEchoMode(QtWidgets.QLineEdit.Password)
+        self.button_cancel = QtWidgets.QPushButton(self)
+        self.button_cancel.clicked.connect(self.close_window)
+        self.button_cancel.setText("キャンセル")
+        self.button_save = QtWidgets.QPushButton(self)
+        self.button_save.clicked.connect(self.save_setting)
+        self.button_save.setText("OK")
+
+        # layout
+        self.win_layout = QtWidgets.QGridLayout(self)
+        self.button_layout = QtWidgets.QHBoxLayout(self)
+        self.button_layout.setContentsMargins(100,0,0,0)
+        self.win_layout.addWidget(self.label_id,0,0)
+        self.win_layout.addWidget(self.input_id,0,1)
+        self.win_layout.addWidget(self.label_pass,1,0)
+        self.win_layout.addWidget(self.input_pass,1,1)
+        self.win_layout.addLayout(self.button_layout,2,1)
+        self.button_layout.addWidget(self.button_cancel)
+        self.button_layout.addWidget(self.button_save)
+
+    def is_collect_login_data(self,ID, PASSWD):
         passwd_in_twoalpha = bool(re.search(r'[a-zA-Z_].*[a-zA-Z_]', PASSWD))
         passwd_in_notalpha = bool(re.search(r'[^a-zA-Z]+', PASSWD))
         # エラーを避けるため、文字数の確認を先に行っている。
-        collect = \
+        is_collect = \
             len(ID) == 7 and \
             ID[0] == 't' and \
             str.isdecimal(ID[1:7]) and \
             len(PASSWD) >= 6 and \
             passwd_in_twoalpha and \
             passwd_in_notalpha
-        return collect
+        return is_collect
 
-    def write_data():
-        global account_setting_open
-        global change_account
-        ID = input_id.get()
-        PASSWD = input_passwd.get()
-        if collect_login_data(ID, PASSWD):
-            sub_win.destroy()
-            account_setting_open = False
-            passcrypt.write_data(ID, PASSWD)
-            time.sleep(3)
-            label_status_text.set("状態 : " + confirm_login_status())
-            change_account = True
-        else :
-            sub_win.destroy()
-            messagebox.showerror("uumail notification - エラー", "設定を変更できませんでした\n正しいIDとパスワードを入力してください")
-            cancel()
-
-    def cancel():
-        global account_setting_open
-        sub_win.destroy()
-        account_setting_open = False
-
-    sub_win = tkinter.Toplevel()
-    sub_win.protocol("WM_DELETE_WINDOW", cancel)
-    sub_win.title(u"uumail notification - アカウントを変更する")
-    sub_win.geometry("330x80")
-    sub_win.resizable(0, 0)
-
-    label_id = tkinter.Label(sub_win,text="ID")
-    label_id.grid(row=2, column=1, padx=10,)
-
-    input_id = tkinter.Entry(sub_win,width=40)
-    input_id.grid(row=2, column=2)
-
-    label_passwd = tkinter.Label(sub_win,text="パスワード")
-    label_passwd.grid(row=3, column=1, padx=10,)
-
-    input_passwd = tkinter.Entry(sub_win,show='*', width=40)
-    input_passwd.grid(row=3, column=2)
-
-    button_cancel = tkinter.Button(sub_win,text="キャンセル",command=cancel)
-    button_cancel.place(x=220, y=50)
-
-    button_save = tkinter.Button(sub_win,text="OK",width=5,command=write_data)
-    button_save.place(x=280, y=50)
-
-    account_setting_open = True
-
-    sub_win.mainloop()
-
-def running_umn():
-    cmd = "tasklist"
-    tasklist = subprocess.run(cmd, check=True, shell=False, stdout=subprocess.PIPE)
-    run_umn = "uumail_notification" in str(tasklist)
-    return run_umn
-
-def restart_umn():
-    subprocess.run(["taskkill", "/f", "/im", "uumail_notification.exe"])
-    time.sleep(2)
-    subprocess.Popen("uumail_notification.exe", shell=True)
-
-def reflect_auto_startup():
-    start_up = auto_startup.get()
-    if start_up == True and startup_exist == False:
-        subprocess.run(DIR_UMN + "\\setting\\startup.vbs", shell=True)
-    elif start_up == False and startup_exist == True:
-        subprocess.run(["del", umn_config.PARH_STARTUP], shell=True)
-
-def save():
-    new_config = {
-        'sync_interval' :  sync_interval_option[cb_sync_interval.get()],
-        'DontNotify_NoMail' : tkBool_DontNotify_NoMail.get()
-        }
-    root.destroy()
-    reflect_auto_startup()
-    change_config = (config != new_config) or change_account
-    if change_config :
-        umn_config.write_config(new_config)
-        if running_umn() :
-            q = messagebox.askquestion(
-            'uumail_notification - エラー',
-            'uumail_notification が既に常駐しています。\nuumail_notification を再起動すると設定が適用されます。\n再起動しますか？'
-            )
-            if q == "yes":
-                restart_umn()
-    sys.exit(0)
-
-def cancel():
-    sys.exit(0)
-
-def open_pass_set():
-    if account_setting_open is False :
-        account_setting()
-
-def delete_account():
-    if running_umn():
-        q = messagebox.askquestion(
-            'uumail_notification - アカウント情報削除',
-            'uumail_notification が常駐しています。\nアカウントを削除するするには、終了する必要があります。\nuumail_notification を終了しますか？'
-            )
-        if q == "yes":
-            subprocess.run(["taskkill", "/f", "/im", "uumail_notification.exe"])
+    def close_window(self):
+        self.hide()
+        self.input_id.clear()
+        self.input_pass.clear()
+    def save_setting(self):
+        if self.is_collect_login_data(self.input_id.text(), self.input_pass.text()):
+            passcrypt.write_data(self.input_id.text(), self.input_pass.text())
+            self.setting_window.login_status_label.setText("状態 : " + self.setting_window.confirm_login_status())
+            self.close_window()
         else:
-            return
-    shutil.rmtree(passcrypt.PATH_DIR)
-    messagebox.showinfo("uumail_notification", "アカウント情報を削除しました")
-    time.sleep(2)
-    label_status_text.set("状態 : " + confirm_login_status())
+            self.hide()
+            self.setWindowFlags(QtCore.Qt.Dialog)
+            self.show()
+            ret = QtWidgets.QMessageBox.warning(None, \
+                                                "uumail notification", \
+                                                "正しいIDとパスワードを入力してください", \
+                                                QtWidgets.QMessageBox.Ok)
+            self.hide()
+            self.setWindowFlags(QtCore.Qt.Dialog|QtCore.Qt.WindowStaysOnTopHint)
+            self.show()
+
+    def closeEvent(self, event):
+        self.close_window()
+        event.ignore()
+
+class setting_window(QtWidgets.QWidget):
+    def __init__(self):
+        super().__init__()
+        self.icon = QtGui.QIcon(umn_config.PATH_ICON)
+        self.setWindowIcon(self.icon)
+        self.config = umn_config.read_config()
+        self.sync_interval_option = {'30分毎': '30', '1時間毎': '60', '2時間毎': "120", '4時間毎': '240'}
+        # root, style
+        self.setWindowTitle("uumail notification - 設定")
+        self.root_x = 620
+        self.root_y = 600
+        self.header_x = 60
+        self.indent_x = 30
+        self.setFixedSize(self.root_x,self.root_y)
+        self.setStyleSheet("QWidget{font-family: メイリオ;font-size: 14px;}")
+        self.heading_style = """
+        QLabel{
+            font-size: 17px;
+            font-weight:bold;
+        }
+        """
+
+        # widget
+        self.icon_settings =  QtGui.QImage(DIR_UMN + '\\setting\\settings.png')
+        self.pixmap_setting = QtGui.QPixmap.fromImage(self.icon_settings.scaledToHeight(20))
+
+        self.setting_icon_label = QtWidgets.QLabel(self)
+        self.setting_icon_label.setPixmap(self.pixmap_setting)
+        self.setting_icon_label.setGeometry(QtCore.QRect(30,20,20,20))
+        
+        self.setting_label = QtWidgets.QLabel(self)
+        self.setting_label.setText("設定")
+        self.setting_label.setStyleSheet("QLabel{font-size: 20px; font-weight:bold;}")
+        self.setting_label.setGeometry(QtCore.QRect(60,20,100,20))
+
+        self.label_acount = QtWidgets.QLabel(self)
+        self.label_acount.setText("アカウント")
+        self.label_acount.setStyleSheet(self.heading_style)
+        self.label_acount.setGeometry(QtCore.QRect(self.header_x,70,500,20))
+
+        self.login_status_label = QtWidgets.QLabel(self)
+        self.login_status_label.setText("状態 : " + self.confirm_login_status())
+        self.login_status_label.setGeometry(QtCore.QRect(self.header_x+self.indent_x,120,500,20))
+
+        self.button_account_setting = QtWidgets.QPushButton(self)
+        self.button_account_setting.clicked.connect(self.account_setting_window_show)
+        self.button_account_setting.setText("アカウントを設定する")
+        self.button_account_setting.setGeometry(QtCore.QRect(130,160,170,30))
+
+        self.button_account_delete = QtWidgets.QPushButton(self)
+        self.button_account_delete.clicked.connect(self.delete_account)
+        self.button_account_delete.setText("アカウント情報を削除する")
+        self.button_account_delete.setGeometry(QtCore.QRect(320,160,200,30))
+
+        self.label_sync = QtWidgets.QLabel(self)
+        self.label_sync.setText("同期")
+        self.label_sync.setStyleSheet(self.heading_style)
+        self.label_sync.setGeometry(QtCore.QRect(self.header_x,230,500,20))
+
+        self.label_sync_interval = QtWidgets.QLabel(self)
+        self.label_sync_interval.setText("同期頻度")
+        self.label_sync_interval.setGeometry(QtCore.QRect(self.header_x+self.indent_x,280,500,20))
+
+        self.cb_sync_interval = QtWidgets.QComboBox(self)
+        self.cb_sync_interval.setGeometry(QtCore.QRect(370,280,150,20))
+        self.cb_sync_interval.addItems(self.sync_interval_option.keys())
+        sync_interval_option_values = list(self.sync_interval_option.values())
+        sync_interval = sync_interval_option_values.index(self.config['sync_interval'])
+        self.cb_sync_interval.setCurrentIndex(sync_interval)
+
+        self.label_auto_startup = QtWidgets.QLabel(self)
+        self.label_auto_startup.setText("自動起動")
+        self.label_auto_startup.setStyleSheet(self.heading_style)
+        self.label_auto_startup.setGeometry(QtCore.QRect(self.header_x,330,500,20))
+
+        self.chk_startup = QtWidgets.QCheckBox(self)
+        self.chk_startup.setText("起動時に自動的に実行する。")
+        self.chk_startup.setGeometry(QtCore.QRect(self.header_x+self.indent_x,380,500,20))
+
+        self.label_notify = QtWidgets.QLabel(self)
+        self.label_notify.setText("通知")
+        self.label_notify.setStyleSheet(self.heading_style)
+        self.label_notify.setGeometry(QtCore.QRect(self.header_x,430,500,20))
+
+        self.chk_DontNotify_NoMail = QtWidgets.QCheckBox(self)
+        self.chk_DontNotify_NoMail.setText("メールがないときは通知しない")
+        self.chk_DontNotify_NoMail.setGeometry(QtCore.QRect(self.header_x+self.indent_x,470,500,20))
+
+        self.button_cancel = QtWidgets.QPushButton(self)
+        self.button_cancel.clicked.connect(self.cancel)
+        self.button_cancel.setText("キャンセル")
+        self.button_cancel.setGeometry(QtCore.QRect(350,550,100,30))
+
+        self.button_save = QtWidgets.QPushButton(self)
+        self.button_save.clicked.connect(self.save)
+        self.button_save.setText("OK")
+        self.button_save.setGeometry(QtCore.QRect(460,550,100,30))
+
+        self.account_setting_widget = account_setting_window(self)
+        self.is_startup_exist = umn_config.exist_startup()
+
+        if self.is_startup_exist:
+            self.chk_startup.setCheckState(QtCore.Qt.Checked)
+        else:
+            self.chk_startup.setCheckState(QtCore.Qt.Unchecked)
+        
+        if bool(self.config['DontNotify_NoMail']):
+            self.chk_DontNotify_NoMail.setCheckState(QtCore.Qt.Checked)
+        else:
+            self.chk_DontNotify_NoMail.setCheckState(QtCore.Qt.Unchecked)
+    
+    def confirm_login_status(self):
+        try:
+            login_data = passcrypt.read_data()
+            status = login_data[0] +' でログインします'
+        except:
+            status = 'アカウントが設定されていません'
+        return status
+    
+    def is_login_id(self):
+        try:
+            passcrypt.read_data()
+            return True
+        except:
+            return False
+    
+    def account_setting_window_show(self):
+        self.account_setting_widget.open()
+
+    def delete_account(self):
+        try:
+            shutil.rmtree(passcrypt.PATH_DIR)
+        except OSError as err:
+            pass
+        QtWidgets.QMessageBox.information(None, \
+                                        "uumail notification", \
+                                        "アカウント情報を削除しました", \
+                                        QtWidgets.QMessageBox.Ok)
+        self.login_status_label.setText("状態 : " + self.confirm_login_status())
+    def reflect_auto_startup(self):
+        start_up = self.chk_startup.isChecked()
+        if start_up == True and self.is_startup_exist == False:
+            subprocess.run(DIR_UMN + "\\setting\\startup.vbs", shell=True)
+        elif start_up == False and self.is_startup_exist == True:
+            subprocess.run(["del", umn_config.PARH_STARTUP], shell=True)
+    def save(self):
+        if not self.is_login_id():
+            ret = QtWidgets.QMessageBox.warning(None, \
+                                         "uumail notification - エラー", \
+                                         "アカウント情報を読み込めません。\nアカウント情報を設定してください", \
+                                          QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel)
+            if ret == QtWidgets.QMessageBox.Cancel :
+                QtWidgets.QMessageBox.warning(None, \
+                                         "uumail notification - エラー", \
+                                         "終了します。", \
+                                          QtWidgets.QMessageBox.Ok)
+                sys.exit(1)
+            return False
+        if self.account_setting_widget.isHidden():
+            self.config = {
+                'sync_interval' :  str(self.sync_interval_option[self.cb_sync_interval.currentText()]),
+                'DontNotify_NoMail' : self.chk_DontNotify_NoMail.isChecked()
+                }
+            umn_config.write_config(self.config)
+            self.reflect_auto_startup()
+            self.hide()
+    def cancel(self):
+        if self.account_setting_widget.isHidden():
+            self.hide()
+    # closeEventをオーバーライド -> ウィンドウを閉じたとき、アプリが終了しないようにするため
+    def closeEvent(self, event):
+        self.cancel()
+        event.ignore()
+    
 
 
-sync_interval_option = {'30分毎': '30', '1時間毎': '60', '2時間毎': "120", '4時間毎': '240'}
 
-def confirm_login_status():
-    try:
-        login_data = passcrypt.read_data()
-        status = login_data[0] +' でログインします'
-    except:
-        status = 'アカウントが設定されていません'
-    return status
+# if __name__ == "__main__":
+#     app = QtWidgets.QApplication([])
 
-# 設定ファイルの読み込み
-config = umn_config.read_config()
+#     DIR_UMN = os.getcwd()
+#     if DIR_UMN[-7:] == "setting":
+#         DIR_UMN = DIR_UMN[:-8]
+#         os.chdir('..')
 
+#     widget = setting_window()
+#     widget.show()
 
-
-font_header = ("メイリオ",12,"bold")
-font_content = ("メイリオ", 10)
-
-root = tkinter.Tk()
-root.title(u"uumail notification - 設定")
-x_root = 600
-y_root = 620
-root.geometry(str(x_root)+"x"+str(y_root))
-root.configure(bg=None)
-#root.attributes("-alpha",0.8)
-root.resizable(0, 0)
-root_icon = DIR_UMN + '\\icon\\uumail.ico'
-root.iconbitmap(default=root_icon)
-
-icon_settings = tkinter.PhotoImage(file=DIR_UMN + '\\setting\\settings.png')
-icon_settings = icon_settings.subsample(14)
-label_title = tkinter.Label(
-    root,
-     text=u' 設定',
-      font=("メイリオ", 14, "bold"),
-       bg=None,
-       image=icon_settings,
-       compound='left'
-)
-label_title.place(x=30, y=20)
-
-bg_color = '#f9f9fa'
-frame = tkinter.Frame(
-    root,
-    height=y_root - 150,
-    width=x_root - 100,
-    relief='raised',
-    bg=bg_color,
-    borderwidth=1
-)
-frame.place(x=50 , y=70)
-x_header = 20
-
-label_acount = tkinter.Label(frame,text=u'アカウント', font=font_header, bg=bg_color)
-y_acount = 20
-label_acount.place(x=x_header, y=y_acount)
-label_status_text = tkinter.StringVar()
-label_status_text.set("状態 : " + confirm_login_status())
-label_status = tkinter.Label(frame,textvariable=label_status_text,font = font_content,bg=bg_color)
-label_status.place(x=x_header+40, y=y_acount+40)
-
-button_account_setting = tkinter.Button(frame,text=u'アカウントを設定する',font = font_content,bg=bg_color,command=open_pass_set)
-button_account_setting.place(x=x_header + 40, y=y_acount + 80)
-
-button_account_delete = tkinter.Button(frame,text=u'アカウント情報を削除する',font = font_content,bg=bg_color,command=delete_account)
-button_account_delete.place(x=x_header+200, y=y_acount+80)
-
-label_sync = tkinter.Label(frame,text=u'同期', font=font_header, bg=bg_color)
-y_sync = 180
-label_sync.place(x=x_header, y=y_sync)
-
-label_sync_interval = tkinter.Label(frame,text=u'同期頻度　：',font = font_content,bg=bg_color)
-label_sync_interval.place(x=x_header + 40, y=y_sync + 40)
-
-cb_sync_interval = tkinter.ttk.Combobox(frame, state="readonly",font=font_content)
-cb_sync_interval['values'] = list(sync_interval_option.keys())
-sync_interval_option_values = list(sync_interval_option.values())
-sync_interval = sync_interval_option_values.index(config['sync_interval'])
-cb_sync_interval.current(sync_interval)
-cb_sync_interval.place(x=x_header + 130, y=y_sync + 42)
-
-y_auto_startup = 280
-label_auto_startup = tkinter.Label(frame,text=u'自動起動',font = font_header,bg=bg_color)
-label_auto_startup.place(x=x_header, y=y_auto_startup)
-
-startup_exist = umn_config.exist_startup()
-auto_startup = tkinter.BooleanVar()
-auto_startup.set(startup_exist)
-chk_startup = tkinter.Checkbutton(frame, variable=auto_startup, text='起動時に自動的に実行する。',font = font_content,bg=bg_color)
-chk_startup.place(x=x_header + 40, y=y_auto_startup + 40)
-
-y_notify = 360
-label_notify = tkinter.Label(frame,text=u'通知',font = font_header,bg=bg_color)
-label_notify.place(x=x_header, y=y_notify)
-
-DontNotify_NoMail = bool(config['DontNotify_NoMail'])
-tkBool_DontNotify_NoMail = tkinter.BooleanVar()
-tkBool_DontNotify_NoMail.set(DontNotify_NoMail)
-chk_DontNotify_NoMail = tkinter.Checkbutton(frame, variable=tkBool_DontNotify_NoMail, text='メールがないときは通知しない',font = font_content,bg=bg_color)
-chk_DontNotify_NoMail.place(x=x_header + 40, y=y_notify + 40)
-
-button_cancel = tkinter.Button(root,text="キャンセル",font=font_content,width=10,command=cancel)
-button_cancel.place(x=x_root - 210, y=y_root - 50)
-button_save = tkinter.Button(root,text="OK",font=font_content,width=10,command=save)
-button_save.place(x=x_root - 110, y=y_root - 50)
-
-
-root.mainloop()
+#     sys.exit(app.exec())

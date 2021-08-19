@@ -68,13 +68,12 @@ def read_data():
     return loginid, passwd
 
 def write_data(loginid,passwd):
+    os.makedirs(PATH_DIR, exist_ok=True)
     erc = encrypt(passwd)
     write_bin(PATH_KEY, erc['key'])
     write_bin(PATH_PASSWD, erc['passwd'])
     with open(PATH_ID, mode='w') as f:
         f.write(loginid)
-
-os.makedirs(PATH_DIR, exist_ok=True)
 
 
 
