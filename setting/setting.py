@@ -236,6 +236,7 @@ class setting_window(QtWidgets.QWidget):
             subprocess.run(DIR_UMN + "\\setting\\startup.vbs", shell=True)
         elif start_up == False and self.is_startup_exist == True:
             subprocess.run(["del", umn_config.PARH_STARTUP], shell=True)
+        self.is_startup_exist = umn_config.exist_startup()
     def save(self):
         if not self.is_login_id():
             ret = QtWidgets.QMessageBox.warning(None, \
