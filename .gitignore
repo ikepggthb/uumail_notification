@@ -12,3 +12,4 @@ setting/dist/*
 __pycache__/*
 dist/*
 .qt_for_python/*
+.vscode/*
