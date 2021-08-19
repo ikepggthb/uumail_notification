@@ -1,23 +1,64 @@
 # coding: utf-8
 # セットアップファイル
- 
+
 import sys
 from cx_Freeze import setup, Executable
  
 base = None
 
-includes = ["infi.systray","pkg_resources"]
+includefiles = ['icon/', ('setting/startup.vbs','setting/startup.vbs'),'COPYING']
+includes = []
+upgrade_code = "{06b635d3-7f04-4f9d-a18a-8417ece45119}"
 
-# GUI=有効, CUI=無効 にする
 if sys.platform == 'win32' : base = 'Win32GUI'
  
-# exe にしたい python ファイルを指定
 exe = Executable(script = 'uumail_notification.py',
                  base = base, icon='icon\\uumail.ico')
+
+shortcut_table = [
+    ("DesktopShortcut",        # Shortcut
+     "DesktopFolder",          # Directory_
+     "uumail notification",    # Name
+     "TARGETDIR",              # Component_
+     "[TARGETDIR]\\uumail_notification.exe",# Target
+     None,                     # Arguments
+     None,                     # Description
+     None,                     # Hotkey
+     None,                     # Icon
+     None,                     # IconIndex
+     None,                     # ShowCmd
+     "TARGETDIR",              # WkDir
+     ),
+      ("StartupShortcut",        # Shortcut
+       "StartupFolder",          # Directory_
+       "uumail notification",    # Name
+       "TARGETDIR",              # Component_
+       "[TARGETDIR]\\uumail_notification.exe",# Target
+       None,                     # Arguments
+       None,                     # Description
+       None,                     # Hotkey
+       None,                     # Icon
+       None,                     # IconIndex
+       None,                     # ShowCmd
+       "TARGETDIR",              # WkDir
+     )
+    ]
+
+# Now create the table dictionary
+msi_data = {"Shortcut": shortcut_table}
+
+build_exe_options =  {"includes":includes,'include_files':includefiles} 
+bdist_msi_options = {
+    'add_to_path': True,
+    'all_users' : True,
+    'data' : msi_data,
+    'upgrade_code': upgrade_code
+    }
+
  
 # セットアップ
-setup(name = 'uumail_notification',
-      version = '0.1',
+setup(name = 'uumail notification',
+      version = '2.0',
       description = 'uumail_notification',
-      options = {"build_exe": {"includes":includes}},
+      options = {"build_exe":build_exe_options,'bdist_msi': bdist_msi_options},
       executables = [exe])
