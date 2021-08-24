@@ -12,9 +12,6 @@ if DIR_UMN[-7:] == "setting":
 from setting import umn_config, passcrypt
 import subprocess
 
-
-
-
 class account_setting_window(QtWidgets.QDialog):
     def __init__(self,setting_window):
         super().__init__()
@@ -265,19 +262,3 @@ class setting_window(QtWidgets.QWidget):
     def closeEvent(self, event):
         self.cancel()
         event.ignore()
-    
-
-
-
-# if __name__ == "__main__":
-#     app = QtWidgets.QApplication([])
-
-#     DIR_UMN = os.getcwd()
-#     if DIR_UMN[-7:] == "setting":
-#         DIR_UMN = DIR_UMN[:-8]
-#         os.chdir('..')
-
-#     widget = setting_window()
-#     widget.show()
-
-#     sys.exit(app.exec())

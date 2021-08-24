@@ -17,7 +17,6 @@
 #   You should have received a copy of the GNU General Public License
 #   along with "uumail_notification".  If not, see <http://www.gnu.org/licenses/>.
 import sys
-
 import sys
 from PySide6 import QtCore, QtWidgets, QtGui
 
@@ -34,14 +33,11 @@ import win32api
 import sys
 import win32.lib.win32con as win32con
 
-
-
-if __name__ == "__main__":
-
+def main():
     UNIQUE_MUTEX_NAME = 'Global\\UmnIsAlreadyRunning'
     handle = win32event.CreateMutex(None, pywintypes.FALSE, UNIQUE_MUTEX_NAME)
     if not handle or win32api.GetLastError() == winerror.ERROR_ALREADY_EXISTS:
-        print('既に別のプロセスが実行中です。', file=sys.stderr)
+        print('既に別のプロセスが実行中です。')
         win32api.MessageBox(0, u"既に常駐しています", u"uumail notification - エラー", win32con.MB_OK | win32con.MB_ICONERROR)
         sys.exit(-1)
     app = QtWidgets.QApplication([])
@@ -61,3 +57,8 @@ if __name__ == "__main__":
     reg_notify.start()
 
     app.exec()
+
+
+if __name__ == "__main__":
+    main()
+

@@ -19,11 +19,13 @@
 import sys
 import time
 from PySide6 import QtCore, QtWidgets, QtGui
+import webbrowser
 
 import notification_daemon
 from setting import setting
 from setting import umn_config
 from setting import passcrypt
+import get
 
 class about_window(QtWidgets.QWidget):
     def __init__(self):
@@ -75,31 +77,57 @@ class umn_systray(QtWidgets.QSystemTrayIcon):
         self.icon = QtGui.QIcon(umn_config.PATH_ICON)
         self.setIcon(self.icon)
         self.init_menu()
-        self.setVisible(True)
+        self.show()
         
     def init_menu(self):
         # メニューの作成
         self.menu = QtWidgets.QMenu()
+        # 項目 : 最新の状態を取得
+        self.get_mail_action = QtGui.QAction('最新の状態を取得', self.menu)
+        self.get_mail_action.setObjectName('get_mail')
+        self.get_mail_action.triggered.connect(self.get_mail)
+        self.menu.addAction(self.get_mail_action)
+        # 項目 : 最新の状態を取得
+        self.open_uumail_action = QtGui.QAction('uumailを開く', self.menu)
+        self.open_uumail_action.setObjectName('open_uumail')
+        self.open_uumail_action.triggered.connect(self.open_uumail)
+        self.menu.addAction(self.open_uumail_action)
         # 項目 : 設定
         self.show_setting_action = QtGui.QAction('設定', self.menu)
         self.show_setting_action.setObjectName('setting')
         self.show_setting_action.triggered.connect(self.show_setting)
         self.menu.addAction(self.show_setting_action)
-        self.setContextMenu(self.menu)
         self.setting_wg = setting.setting_window()
         # 項目 : バージョン情報
         self.show_about_action = QtGui.QAction('uumail notificationについて', self.menu)
         self.show_about_action.setObjectName('about')
         self.show_about_action.triggered.connect(self.show_about)
         self.menu.addAction(self.show_about_action)
-        self.setContextMenu(self.menu)
         self.about_wg = about_window()
         # 項目 : Quit
         self.exit_action = QtGui.QAction('Quit', self.menu)
         self.exit_action.setObjectName('exit')
         self.exit_action.triggered.connect(self.quit_)
         self.menu.addAction(self.exit_action)
+        # システムトレイアイコンに反映
         self.setContextMenu(self.menu)
+
+    def get_info(self):
+        self.showMessage("uumail", "情報を取得しています",QtWidgets.QSystemTrayIcon.Information)
+        try:
+            ACCOUNT_DATA = passcrypt.read_data()
+            authid = ACCOUNT_DATA[0]
+            password = ACCOUNT_DATA[1]
+        except:
+            self.showMessage("uumail","アカウント情報を読み込めません",QtWidgets.QSystemTrayIcon.Critical)
+            return False
+        uumail_info = get.Get_mail_recent(authid=authid,password=password)
+        uumail_info.run()
+        self.showMessage("uumail", uumail_info.info_mail_recent,QtWidgets.QSystemTrayIcon.Information)
+    def get_mail(self):
+        self.get_info()
+    def open_uumail(self):
+        webbrowser.open("https://uumail.cc.utsunomiya-u.ac.jp/")
     def show_setting(self):
         self.setting_wg.show()
     def show_about(self):
