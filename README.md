@@ -16,19 +16,22 @@ uumailが受信されたことをWindowsPCに通知します。
 
 - v1.1 アカウント情報入力画面が開かなくなるバグを修正。タスクトレイに常駐する機能を実装。
 
+- v2.0 https://github.com/ikepggthb/uumail_notification/pull/6#issue-718408899
+
 ## Environment
 
-- OS : Windows10のみ（Windows10以前では動きません。)
-  - ※Mac,Android,iOSなどは非対応（Androidにはいずれ対応させます。）
+- OS : Microsoft Windows 10（Windows10以外のWindowsでは動作未確認)
+- ※Mac,Android,iOSなどは非対応
 
 ## Note
 
-- 利用するには、
-<https://drive.google.com/drive/folders/1gcDD2wZ6LU6w51_D2wKEt_Q42xRsdvsG?usp=sharing>
-へアクセスし、umn_1.1.zipをダウンロードし、解凍してください。
-- INSTALL.EXEを実行するとインストールが開始されます。
+- 利用するには、以下のリンク先から、"uumail notification-2.0-amd64.msi"をダウンロードしてください。
+<https://github.com/ikepggthb/uumail_notification/releases/download/2.0/uumail.notification-2.0-amd64.msi>
+（クリックするとダウンロードが始まります。）
+
+- 実行するとインストールが開始されます。
 - "uumail_notification"を起動すると新着メールの同期が行われます。
-- ※pyinstallerの仕様上、反応が鈍いことがあります。
+- 以前のバージョンからアップデートする場合、以前のバージョンの"uumail notification"をアンインストールしてから、新しいバージョンをインストールしてください。
 - ※uumail_notification.exeをスタートアップに設定すると、PC起動時に自動的にuumail_notification.exeが実行され、常に新着メール通知を確認できるのでとても便利です。
 
 
