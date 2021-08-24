@@ -16,100 +16,121 @@
 #   GNU General Public License for more details.
 #   You should have received a copy of the GNU General Public License
 #   along with "uumail_notification".  If not, see <http://www.gnu.org/licenses/>.
-
-import win32.lib.win32con as win32con
-import win32api
-import subprocess
-from infi.systray import SysTrayIcon
-
-from setting import umn_config
-import tkinter
-import ctypes
 import sys
+import time
+from PySide6 import QtCore, QtWidgets, QtGui
+import webbrowser
 
-#拡大によるボケ防止
-ctypes.windll.shcore.SetProcessDpiAwareness(1)
+import notification_daemon
+from setting import setting
+from setting import umn_config
+from setting import passcrypt
+import get
 
-VERSION = "1.1"
+class about_window(QtWidgets.QWidget):
+    def __init__(self):
+        super().__init__()
+        self.icon = QtGui.QIcon(umn_config.PATH_ICON)
+        self.setWindowIcon(self.icon)
+        self.setWindowTitle("uumail notification について")
+        self.setFixedSize(600,370)
+        self.setWindowFlags(QtCore.Qt.Dialog|QtCore.Qt.WindowStaysOnTopHint)
+        self.label = QtWidgets.QLabel(self)
+        self.label_style = """QLabel {
+            font-size: 43px;               /* 文字サイズ */
+            padding: 0px 40px;
+        }"""
+        self.font = QtGui.QFont()
+        self.font.setPointSize(13)
+        self.label.setStyleSheet(self.label_style)
+        self.label.setText("uumail notification")
+        self.label.setGeometry(QtCore.QRect(120,0,480,120))
+        self.umnlogo_image = QtGui.QImage('icon\\uumail.png')
+        self.umnlogo_pixmap = QtGui.QPixmap.fromImage(self.umnlogo_image.scaledToHeight(120))
+        self.umnlogo_label = QtWidgets.QLabel(self)
+        self.umnlogo_label.setPixmap(self.umnlogo_pixmap)
+        self.umnlogo_label.setGeometry(QtCore.QRect(0,0,120,120))
+        self.varsion_txt = QtWidgets.QLabel(self)
+        self.varsion_txt.setText("Version  :  2.0")
+        self.varsion_txt.setFont(self.font)
+        self.varsion_txt.setGeometry(QtCore.QRect(40,150,500,30))
+        self.github_txt = QtWidgets.QLabel(self)
+        self.github_txt.setText("Github : https://github.com/ikepggthb/uumail_notification")
+        self.github_txt.setFont(self.font)
+        self.github_txt.setGeometry(QtCore.QRect(40,190,500,30))
+        self.licence_txt = QtWidgets.QLabel(self)
+        self.licence_txt.setText("オープンソースソフトウェア(OSS)であり、GPLv3の条件で許諾されます。\nこのソフトウェアを使用、複製、配布、ソースコードを修正することができます。")
+        self.licence_txt.setFont(self.font)
+        self.licence_txt.setGeometry(QtCore.QRect(40,230,500,45))
+        self.cpn_txt = QtWidgets.QLabel(self)
+        self.cpn_txt.setText( "© 2020 ikkei Yamada All Rights Reserved.\n	Twitter : @idkaeti , Email : ikeprg@gmail.com")
+        self.cpn_txt.setFont(self.font)
+        self.cpn_txt.setGeometry(QtCore.QRect(40,290,500,45))
+    # closeEventをオーバーライド ウィンドウを閉じたとき、アプリが終了しないようにするため
+    def closeEvent(self, event):
+        self.hide()
+        event.ignore()
 
-window_open = False
+class umn_systray(QtWidgets.QSystemTrayIcon):
+    def __init__(self):
+        super().__init__()
+        self.icon = QtGui.QIcon(umn_config.PATH_ICON)
+        self.setIcon(self.icon)
+        self.init_menu()
+        self.show()
+        
+    def init_menu(self):
+        # メニューの作成
+        self.menu = QtWidgets.QMenu()
+        # 項目 : 最新の状態を取得
+        self.get_mail_action = QtGui.QAction('最新の状態を取得', self.menu)
+        self.get_mail_action.setObjectName('get_mail')
+        self.get_mail_action.triggered.connect(self.get_mail)
+        self.menu.addAction(self.get_mail_action)
+        # 項目 : 最新の状態を取得
+        self.open_uumail_action = QtGui.QAction('uumailを開く', self.menu)
+        self.open_uumail_action.setObjectName('open_uumail')
+        self.open_uumail_action.triggered.connect(self.open_uumail)
+        self.menu.addAction(self.open_uumail_action)
+        # 項目 : 設定
+        self.show_setting_action = QtGui.QAction('設定', self.menu)
+        self.show_setting_action.setObjectName('setting')
+        self.show_setting_action.triggered.connect(self.show_setting)
+        self.menu.addAction(self.show_setting_action)
+        self.setting_wg = setting.setting_window()
+        # 項目 : バージョン情報
+        self.show_about_action = QtGui.QAction('uumail notificationについて', self.menu)
+        self.show_about_action.setObjectName('about')
+        self.show_about_action.triggered.connect(self.show_about)
+        self.menu.addAction(self.show_about_action)
+        self.about_wg = about_window()
+        # 項目 : Quit
+        self.exit_action = QtGui.QAction('Quit', self.menu)
+        self.exit_action.setObjectName('exit')
+        self.exit_action.triggered.connect(self.quit_)
+        self.menu.addAction(self.exit_action)
+        # システムトレイアイコンに反映
+        self.setContextMenu(self.menu)
 
-def show_about():
-    global window_open
-    font_content = ("メイリオ", 12)
-    font_content_s = ("メイリオ",11)
-
-    def on_close():
-        global window_open
-        root.destroy()
-        window_open = False
-
-    root = tkinter.Tk()
-    root.protocol("WM_DELETE_WINDOW", on_close)
-    root.title(u"uumail notification について")
-    x_root = 600
-    y_root = 400
-    root.geometry(str(x_root)+"x"+str(y_root))
-    root.configure(bg="white")
-    #root.attributes("-alpha",0.8)
-    root.resizable(0, 0)
-    root_icon = 'icon\\uumail.ico'
-    root.iconbitmap(default=root_icon)
-    root_icon = 'icon\\uumail.png'
-    icon_settings = tkinter.PhotoImage(file=root_icon)
-    icon_settings = icon_settings.subsample(3)
-    label_title = tkinter.Label(
-        root,
-        text=u' 　uumail notification',
-        font=("游明朝", 30, "bold"),
-        bg="white",
-        image=icon_settings,
-        compound='left'
-    )
-    label_title.place(x=0, y=0)
-
-    bg_color = '#f9f9fa'
-    frame = tkinter.Frame(
-        root,
-        height=y_root - 120,
-        width=x_root,
-        bg=bg_color,
-        borderwidth=1
-    )
-    frame.place(x=0 , y=120)
-    x_margin_frame = 40
-
-
-    label_ver = tkinter.Label(frame,text='Version  :  '+VERSION,font = font_content,bg=bg_color)
-    label_ver.place(x=x_margin_frame, y=30)
-
-    LIC = "オープンソースソフトウェア(OSS)であり、GPLv3の条件で許諾されます。\nこのソフトウェアを使用、複製、配布、ソースコードを修正することが\nできます。"
-    label_lic = tkinter.Label(frame,text=LIC,font = font_content_s,bg=bg_color, justify='left')
-    label_lic.place(x=x_margin_frame, y=120)
-
-    GITHUB = "Github : https://github.com/ikepggthb/uumail_notification"
-    label_github = tkinter.Label(frame,text=GITHUB,font = font_content_s,bg=bg_color, justify='left')
-    label_github.place(x=x_margin_frame, y=80)
-
-    CPN = "© 2020 ikkei Yamada All Rights Reserved.		\nTwitter : @idkaeti , Email : ikeprg@gmail.com"
-
-    label_cpn = tkinter.Label(frame,text=CPN,font = font_content_s,bg=bg_color)
-    label_cpn.place(x=x_margin_frame, y=200)
-    window_open = True
-    root.mainloop()
-
-def task_tray():
-    def systray_exit(systray):
-        win32api.MessageBox(0, u"終了します。", u"uumail_notification", win32con.MB_OK | win32con.MB_ICONQUESTION)
-        sys.exit(0)
-    def systray_open_setting(systray):
-        umn_config.open_setting()
-    def systray_about_unm(systray):
-        if window_open == False:
-            show_about()
-    menu_options = (
-        ("設定", None, systray_open_setting),
-        ("uumail notificationについて", None, systray_about_unm),
-    )
-    systray = SysTrayIcon(umn_config.PATH_ICON, "uumail_notification", menu_options, on_quit=systray_exit)
-    systray.start()
+    def get_info(self):
+        self.showMessage("uumail", "情報を取得しています",QtWidgets.QSystemTrayIcon.Information)
+        try:
+            ACCOUNT_DATA = passcrypt.read_data()
+            authid = ACCOUNT_DATA[0]
+            password = ACCOUNT_DATA[1]
+        except:
+            self.showMessage("uumail","アカウント情報を読み込めません",QtWidgets.QSystemTrayIcon.Critical)
+            return False
+        uumail_info = get.Get_mail_recent(authid=authid,password=password)
+        uumail_info.run()
+        self.showMessage("uumail", uumail_info.info_mail_recent,QtWidgets.QSystemTrayIcon.Information)
+    def get_mail(self):
+        self.get_info()
+    def open_uumail(self):
+        webbrowser.open("https://uumail.cc.utsunomiya-u.ac.jp/")
+    def show_setting(self):
+        self.setting_wg.show()
+    def show_about(self):
+        self.about_wg.show()
+    def quit_(self):
+        sys.exit()

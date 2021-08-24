@@ -9,6 +9,7 @@ PATH_CONFIG = DIR_CONFIG + '\\config.json'
 PARH_STARTUP = DIR_HOME + "\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\uumail_notification.lnk"
 PATH_SETTING = "setting\\setting.exe"
 PATH_ICON = "icon\\uumail.ico"
+icon = "icon\\uumail.ico"
 
 default_config = {'sync_interval': '60','DontNotify_NoMail' : 'True'}
 
@@ -23,7 +24,6 @@ def read_config():
     try:
         with open(PATH_CONFIG) as f:
             config = json.load(f)
-        
         # キーが存在しなければ、エラーを吐いて、except文へ（設定ファイル作り直し）
         config['sync_interval']
         config['DontNotify_NoMail']
@@ -35,7 +35,6 @@ def read_config():
 def exist_startup():
     return os.path.exists(PARH_STARTUP)
 
-icon = "icon\\uumail.ico"
 
 def open_setting():
     cmd = PATH_SETTING
