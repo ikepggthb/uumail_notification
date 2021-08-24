@@ -25,13 +25,13 @@ uumailが受信されたことをWindowsPCに通知します。
 
 ## Note
 
+- 以前のバージョンからアップデートする場合、以前のバージョンの"uumail notification"をアンインストールしてから、新しいバージョンをインストールしてください。
 - 利用するには、以下のリンク先から、"uumail notification-2.0-amd64.msi"をダウンロードしてください。
 <https://github.com/ikepggthb/uumail_notification/releases/download/2.0/uumail.notification-2.0-amd64.msi>
 （クリックするとダウンロードが始まります。）
 
 - 実行するとインストールが開始されます。
 - "uumail_notification"を起動すると新着メールの同期が行われます。
-- 以前のバージョンからアップデートする場合、以前のバージョンの"uumail notification"をアンインストールしてから、新しいバージョンをインストールしてください。
 - ※uumail_notification.exeをスタートアップに設定すると、PC起動時に自動的にuumail_notification.exeが実行され、常に新着メール通知を確認できるのでとても便利です。
 
 
