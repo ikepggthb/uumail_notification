@@ -3,11 +3,18 @@ import os
 from os.path import expanduser
 import subprocess
 
-DIR_HOME = expanduser("~")
-DIR_CONFIG =  DIR_HOME + '\\AppData\\Roaming\\uumail_notification\\settings'
+import win32com.client
+ws_shell = win32com.client.Dispatch("Wscript.Shell")
+
+DIR_UMN = os.getcwd()
+if DIR_UMN[-7:] == "setting":
+    os.chdir('..')
+    DIR_UMN = os.getcwd()
+
+DIR_CONFIG =  os.getenv('APPDATA') + '\\uumail_notification\\settings'
 PATH_CONFIG = DIR_CONFIG + '\\config.json'
-PARH_STARTUP = DIR_HOME + "\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\uumail_notification.lnk"
-PATH_SETTING = "setting\\setting.exe"
+DIR_STARTUP = ws_shell.SpecialFolders("Startup")
+PARH_STARTUP = DIR_STARTUP + "\\uumail_notification.lnk"
 PATH_ICON = "icon\\uumail.ico"
 icon = "icon\\uumail.ico"
 
@@ -35,7 +42,8 @@ def read_config():
 def exist_startup():
     return os.path.exists(PARH_STARTUP)
 
+def make_startup():
+    subprocess.run(DIR_UMN + "\\setting\\startup.vbs", shell=True)
 
-def open_setting():
-    cmd = PATH_SETTING
-    subprocess.Popen(cmd, shell=True)
+def del_startup():
+    subprocess.run(["del", PARH_STARTUP], shell=True)

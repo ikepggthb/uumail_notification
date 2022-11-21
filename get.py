@@ -1,22 +1,13 @@
-# uumail notification
-# -*- coding: utf-8 -*-
+# uumail notification 
+# version : 2.1
+# get.py
 #
 # © 2020 Ikkei Yamada All Rights Reserved.
 # Twitter: @idkaeti
 # Email  : ikeprg@gmail.com
 
 #   Released under the GPLv3 license.
-#
-#   "uumail_notification" is free software: you can redistribute it and/or modify
-#   it under the terms of the GNU General Public License as published by
-#   the Free Software Foundation, either version 3 of the License, or
-#   (at your option) any later version.
-#   "uumail_notification" is distributed in the hope that it will be useful,
-#   but WITHOUT ANY WARRANTY; without even the implied warranty of
-#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#   GNU General Public License for more details.
-#   You should have received a copy of the GNU General Public License
-#   along with "uumail_notification".  If not, see <http://www.gnu.org/licenses/>.
+
 import requests
 import time
 import re
@@ -62,13 +53,15 @@ class Get_mail_recent():
         try:
             login_data = self.gen_login_deta()
             login = session.post(self.url_login, data=login_data, timeout=(3.0, 8))
-            # ログイン後のソースを取得
-            login_redirect_code = login.text
 
             # 取得したコードのJavascript内にある"self.location.href="のあとのURLを取得
-            temp = re.search('self.location.href=\".*?\"', login_redirect_code)
-            redirect_url = login_redirect_code[temp.start() + 20: temp.end() - 1]
+            search_redirect_url = re.search("(?<=self.location.href=\").+(?=\")", login.text)
 
+            if search_redirect_url :
+                redirect_url =search_redirect_url.group()
+            else :
+                self.info_mail_recent = self.fail_message["FAIL_ACSESS"]
+                return False
             # time.sleep(0.5)
 
             # リダイレクト
@@ -77,25 +70,34 @@ class Get_mail_recent():
             self.info_mail_recent = self.fail_message["FAIL_ACSESS"]
             return False
 
-        try:
-            # urlからセッションIDを取得
-            session_id = re.search("[0-9].*", redirect_url)
-            session_id = session_id.group()
-        except :
+
+        # urlからセッションIDを取得
+        search_session_id = re.search("(?<=id=)[0-9]+_[0-9]+", redirect_url)
+        if search_session_id :
+            session_id = search_session_id.group()
+        else :
             self.info_mail_recent = self.fail_message["WRONG_DATA"]
             return False
 
         try:
             # homeへアクセス
             # time.sleep(0.5)
-            page = session.get(redirect_url.replace("top", "home"))
-            # 新着メール情報
-            mail_info_code = re.search("<div class=\"mail_recent shadow\">(.|\s)*?</div>", page.text)
-            mail_info_code = mail_info_code.group()
-            mail_info_code = mail_info_code.replace("\n", "").replace(" ", "")
-            mail_info = re.search("<li>.*?</li>", mail_info_code)
-            mail_info = mail_info.group()[4:-5]
+            uumail_home = session.get(redirect_url.replace("top", "home"))
+
         except:
+            self.info_mail_recent = self.fail_message["FAIL_GET_INFO"] 
+            return False
+        
+        # 新着メール情報
+        search_mail_recent_class = re.search("<div class=\"mail_recent shadow\">(\s|.)*?</div>", uumail_home.text)
+        if search_mail_recent_class :
+            search_info_mail_recent = re.search("(?<=<li>).*?(?=</li>)", search_mail_recent_class.group().replace("\n", "").replace(" ", ""))
+            if search_info_mail_recent :
+                self.info_mail_recent = search_info_mail_recent.group()
+            else :
+                self.info_mail_recent = self.fail_message["FAIL_GET_INFO"] 
+                return False
+        else :
             self.info_mail_recent = self.fail_message["FAIL_GET_INFO"] 
             return False
 
@@ -105,24 +107,22 @@ class Get_mail_recent():
             # time.sleep(0.5)
             logout = session.get(logout_url, timeout=(3.0, 8))
         except:
-            self.info_mail_recent = mail_info
-            return True
+            print("fail logout")
 
-        self.info_mail_recent = mail_info
         return True
 
-    def run(self,count = 5):
+    def run(self,redo_count = 5):
         """
         メール情報の取得が成功するまで複数回繰り返す,
         返り値:bool,
         変数"info_mail_recent"へ保存
         """
         self.info_mail_prev = self.info_mail_recent
-        self.last_count = 0
-        while self.last_count < 5:
+        count = 0
+        while count < redo_count:
             if self.get():
                 return True
-            self.last_count += 1
+            count += 1
             time.sleep(5)
         return False
 

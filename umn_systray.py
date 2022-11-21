@@ -1,27 +1,18 @@
-# uumail notification
+# uumail notification 
+# version : 2.1
+# umn_systray.py
 #
 # © 2020 Ikkei Yamada All Rights Reserved.
-# Twitter: @idkaeti
-# Email  : ikeprg@gmail.com
+# Twitter : @idkaeti
+# Email   : ikeprg@gmail.com
 
 #   Released under the GPLv3 license.
-#
-#   "uumail_notification" is free software: you can redistribute it and/or modify
-#   it under the terms of the GNU General Public License as published by
-#   the Free Software Foundation, either version 3 of the License, or
-#   (at your option) any later version.
-#   "uumail_notification" is distributed in the hope that it will be useful,
-#   but WITHOUT ANY WARRANTY; without even the implied warranty of
-#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#   GNU General Public License for more details.
-#   You should have received a copy of the GNU General Public License
-#   along with "uumail_notification".  If not, see <http://www.gnu.org/licenses/>.
+
 import sys
 import time
 from PySide6 import QtCore, QtWidgets, QtGui
 import webbrowser
 
-import notification_daemon
 from setting import setting
 from setting import umn_config
 from setting import passcrypt
@@ -113,14 +104,13 @@ class umn_systray(QtWidgets.QSystemTrayIcon):
         self.setContextMenu(self.menu)
 
     def get_info(self):
-        self.showMessage("uumail", "情報を取得しています",QtWidgets.QSystemTrayIcon.Information)
         try:
             ACCOUNT_DATA = passcrypt.read_data()
-            authid = ACCOUNT_DATA[0]
-            password = ACCOUNT_DATA[1]
         except:
             self.showMessage("uumail","アカウント情報を読み込めません",QtWidgets.QSystemTrayIcon.Critical)
             return False
+        authid = ACCOUNT_DATA[0]
+        password = ACCOUNT_DATA[1]
         uumail_info = get.Get_mail_recent(authid=authid,password=password)
         uumail_info.run()
         self.showMessage("uumail", uumail_info.info_mail_recent,QtWidgets.QSystemTrayIcon.Information)

@@ -1,25 +1,19 @@
-# uumail notification
-#
+# uumail notification 
+# version : 2.1
+# notification_daemon.py
+
 # © 2020 Ikkei Yamada All Rights Reserved.
 # Twitter: @idkaeti
 # Email  : ikeprg@gmail.com
 
 #   Released under the GPLv3 license.
-#
-#   "uumail_notification" is free software: you can redistribute it and/or modify
-#   it under the terms of the GNU General Public License as published by
-#   the Free Software Foundation, either version 3 of the License, or
-#   (at your option) any later version.
-#   "uumail_notification" is distributed in the hope that it will be useful,
-#   but WITHOUT ANY WARRANTY; without even the implied warranty of
-#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#   GNU General Public License for more details.
-#   You should have received a copy of the GNU General Public License
-#   along with "uumail_notification".  If not, see <http://www.gnu.org/licenses/>.
+
+
+
 import time
 import threading
 
-from PySide6 import QtCore, QtWidgets, QtGui
+from PySide6 import QtWidgets
 
 import get
 
@@ -52,23 +46,24 @@ class Regularly_notify(threading.Thread):
 
     def run(self):
         # init
-        uumail_info = get.Get_mail_recent()
+        uumail_info_getter = get.Get_mail_recent()
         time_start = time.time()
         self.interval = 0
-        i = 0
-
+        count = 0
         while True:
             timer = time.time()
-            if timer >= time_start + self.interval * i:
-                while True:
-                    if self.read_config():
-                        break
-                    time.sleep(3)
-                uumail_info.authid = self.id
-                uumail_info.password = self.passwd
-                uumail_info.run()
-                if not ( ( self.DontNotify_NoMail and uumail_info.is_nomail() ) or uumail_info.is_same_before() ) :
-                    self.notification(uumail_info.info_mail_recent)
-                i += 1
+            if timer >= time_start + self.interval * count:
+                already_notified_cannot_reed = False
+                while not self.read_config():
+                    if not already_notified_cannot_reed:
+                        self.notification("アカウント情報を読み込めません\nアカウント情報を設定してください","uumail",QtWidgets.QSystemTrayIcon.Critical)
+                    already_notified_cannot_reed = True
+                    time.sleep(10)
+                uumail_info_getter.authid = self.id
+                uumail_info_getter.password = self.passwd
+                uumail_info_getter.run()
+                if not ( ( self.DontNotify_NoMail and uumail_info_getter.is_nomail() ) or uumail_info_getter.is_same_before() ) :
+                    self.notification(uumail_info_getter.info_mail_recent)
+                count += 1
             time.sleep(10)
 

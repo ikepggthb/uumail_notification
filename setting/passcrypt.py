@@ -1,40 +1,19 @@
-# uumail notification
-#
-# © 2020 Ikkei Yamada All Rights Reserved.
-# Twitter: @idkaeti
-# Email  : ikeprg@gmail.com
-
-#   Released under the GPLv3 license.
-#
-#   "uumail_notification" is free software: you can redistribute it and/or modify
-#   it under the terms of the GNU General Public License as published by
-#   the Free Software Foundation, either version 3 of the License, or
-#   (at your option) any later version.
-#   "uumail_notification" is distributed in the hope that it will be useful,
-#   but WITHOUT ANY WARRANTY; without even the implied warranty of
-#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#   GNU General Public License for more details.
-#   You should have received a copy of the GNU General Public License
-#   along with "uumail_notification".  If not, see <http://www.gnu.org/licenses/>.
-
-from getpass import getpass
 from Crypto import Random
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad
 from Crypto.Util.Padding import unpad
-from os.path import expanduser
 import os
-import sys
+import shutil
 
-PATH_DIR = expanduser("~") + '\\AppData\\Roaming\\uumail_notification\\account'
-PATH_PASSWD = PATH_DIR + '\\login.data'
-PATH_KEY = PATH_DIR + '\\login.key'
-PATH_ID = PATH_DIR+"\\loginid.txt"
+PATH_ACCOUNT_DIR = os.getenv('APPDATA') + '\\uumail_notification\\account'
+PATH_PASSWD = PATH_ACCOUNT_DIR + '\\login.data'
+PATH_KEY = PATH_ACCOUNT_DIR + '\\login.key'
+PATH_ID = PATH_ACCOUNT_DIR+"\\loginid.txt"
 
 
 def read_bin(path):
     with open(path, mode = "rb") as f:
-	    data = f.read()
+        data = f.read()
     return data
 
 def write_bin(path, data):
@@ -68,12 +47,19 @@ def read_data():
     return loginid, passwd
 
 def write_data(loginid,passwd):
-    os.makedirs(PATH_DIR, exist_ok=True)
+    os.makedirs(PATH_ACCOUNT_DIR, exist_ok=True)
     erc = encrypt(passwd)
     write_bin(PATH_KEY, erc['key'])
     write_bin(PATH_PASSWD, erc['passwd'])
     with open(PATH_ID, mode='w') as f:
         f.write(loginid)
+
+def del_data():
+    try:
+        shutil.rmtree(PATH_ACCOUNT_DIR)
+    except OSError as err:
+        pass
+
 
 
 

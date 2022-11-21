@@ -1,5 +1,12 @@
-# coding: utf-8
-# セットアップファイル
+# uumail notification 
+# version : 2.1
+# setup.py
+#
+# © 2020 Ikkei Yamada All Rights Reserved.
+# Twitter : @idkaeti
+# Email   : ikeprg@gmail.com
+
+# setup file
 
 import sys
 from cx_Freeze import setup, Executable
@@ -29,8 +36,8 @@ shortcut_table = [
      None,                     # ShowCmd
      "TARGETDIR",              # WkDir
      ),
-      ("StartupShortcut",        # Shortcut
-       "StartupFolder",          # Directory_
+      ("StartMenuShortcut",        # Shortcut
+       "StartMenuFolder",          # Directory_
        "uumail notification",    # Name
        "TARGETDIR",              # Component_
        "[TARGETDIR]\\uumail_notification.exe",# Target
@@ -58,7 +65,7 @@ bdist_msi_options = {
  
 # セットアップ
 setup(name = 'uumail notification',
-      version = '2.0',
+      version = '2.1',
       description = 'uumail_notification',
       options = {"build_exe":build_exe_options,'bdist_msi': bdist_msi_options},
       executables = [exe])

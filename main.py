@@ -1,4 +1,6 @@
-# uumail notification
+# uumail notification 
+# version : 2.1
+# main.py
 #
 # © 2020 Ikkei Yamada All Rights Reserved.
 # Twitter: @idkaeti

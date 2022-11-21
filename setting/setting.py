@@ -1,16 +1,9 @@
-import sys
 from PySide6 import QtCore, QtWidgets, QtGui
 import re
-import shutil
-import time
-import os
-DIR_UMN = os.getcwd()
-if DIR_UMN[-7:] == "setting":
-    DIR_UMN = DIR_UMN[:-8]
-    os.chdir('..')
 
 from setting import umn_config, passcrypt
-import subprocess
+
+DIR_UMN = umn_config.DIR_UMN
 
 class account_setting_window(QtWidgets.QDialog):
     def __init__(self,setting_window):
@@ -93,7 +86,6 @@ class setting_window(QtWidgets.QWidget):
         super().__init__()
         self.icon = QtGui.QIcon(umn_config.PATH_ICON)
         self.setWindowIcon(self.icon)
-        self.config = umn_config.read_config()
         self.sync_interval_option = {'30分毎': '30', '1時間毎': '60', '2時間毎': "120", '4時間毎': '240'}
         # root, style
         self.setWindowTitle("uumail notification - 設定")
@@ -129,7 +121,6 @@ class setting_window(QtWidgets.QWidget):
         self.label_acount.setGeometry(QtCore.QRect(self.header_x,70,500,20))
 
         self.login_status_label = QtWidgets.QLabel(self)
-        self.login_status_label.setText("状態 : " + self.confirm_login_status())
         self.login_status_label.setGeometry(QtCore.QRect(self.header_x+self.indent_x,120,500,20))
 
         self.button_account_setting = QtWidgets.QPushButton(self)
@@ -154,9 +145,6 @@ class setting_window(QtWidgets.QWidget):
         self.cb_sync_interval = QtWidgets.QComboBox(self)
         self.cb_sync_interval.setGeometry(QtCore.QRect(370,280,150,20))
         self.cb_sync_interval.addItems(self.sync_interval_option.keys())
-        sync_interval_option_values = list(self.sync_interval_option.values())
-        sync_interval = sync_interval_option_values.index(self.config['sync_interval'])
-        self.cb_sync_interval.setCurrentIndex(sync_interval)
 
         self.label_auto_startup = QtWidgets.QLabel(self)
         self.label_auto_startup.setText("自動起動")
@@ -187,9 +175,28 @@ class setting_window(QtWidgets.QWidget):
         self.button_save.setGeometry(QtCore.QRect(460,550,100,30))
 
         self.account_setting_widget = account_setting_window(self)
-        self.is_startup_exist = umn_config.exist_startup()
 
-        if self.is_startup_exist:
+        self.set_widget_state()
+
+    def confirm_login_status(self):
+        try:
+            login_data = passcrypt.read_data()
+            status = login_data[0] +' でログインします'
+        except:
+            status = 'アカウントが設定されていません'
+        return status
+
+    def set_widget_state(self):
+        self.config = umn_config.read_config()
+        self.login_status_label.setText("状態 : " + self.confirm_login_status())
+        sync_interval_option_values = list(self.sync_interval_option.values())
+        if not self.config['sync_interval'] in sync_interval_option_values:
+            umn_config.write_config(umn_config.default_config)
+            self.config = umn_config.read_config()
+        sync_interval = sync_interval_option_values.index(self.config['sync_interval'])
+        self.cb_sync_interval.setCurrentIndex(sync_interval)
+
+        if umn_config.exist_startup():
             self.chk_startup.setCheckState(QtCore.Qt.Checked)
         else:
             self.chk_startup.setCheckState(QtCore.Qt.Unchecked)
@@ -198,14 +205,6 @@ class setting_window(QtWidgets.QWidget):
             self.chk_DontNotify_NoMail.setCheckState(QtCore.Qt.Checked)
         else:
             self.chk_DontNotify_NoMail.setCheckState(QtCore.Qt.Unchecked)
-    
-    def confirm_login_status(self):
-        try:
-            login_data = passcrypt.read_data()
-            status = login_data[0] +' でログインします'
-        except:
-            status = 'アカウントが設定されていません'
-        return status
     
     def is_login_id(self):
         try:
@@ -218,10 +217,7 @@ class setting_window(QtWidgets.QWidget):
         self.account_setting_widget.open()
 
     def delete_account(self):
-        try:
-            shutil.rmtree(passcrypt.PATH_DIR)
-        except OSError as err:
-            pass
+        passcrypt.del_data()
         QtWidgets.QMessageBox.information(None, \
                                         "uumail notification", \
                                         "アカウント情報を削除しました", \
@@ -229,24 +225,18 @@ class setting_window(QtWidgets.QWidget):
         self.login_status_label.setText("状態 : " + self.confirm_login_status())
     def reflect_auto_startup(self):
         start_up = self.chk_startup.isChecked()
-        if start_up == True and self.is_startup_exist == False:
-            subprocess.run(DIR_UMN + "\\setting\\startup.vbs", shell=True)
-        elif start_up == False and self.is_startup_exist == True:
-            subprocess.run(["del", umn_config.PARH_STARTUP], shell=True)
-        self.is_startup_exist = umn_config.exist_startup()
+        if start_up == True and umn_config.exist_startup() == False:
+            umn_config.make_startup()
+        elif start_up == False and umn_config.exist_startup() == True:
+            umn_config.del_startup()
     def save(self):
         if not self.is_login_id():
             ret = QtWidgets.QMessageBox.warning(None, \
                                          "uumail notification - エラー", \
                                          "アカウント情報を読み込めません。\nアカウント情報を設定してください", \
                                           QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel)
-            if ret == QtWidgets.QMessageBox.Cancel :
-                QtWidgets.QMessageBox.warning(None, \
-                                         "uumail notification - エラー", \
-                                         "終了します。", \
-                                          QtWidgets.QMessageBox.Ok)
-                sys.exit(1)
-            return False
+            if ret == QtWidgets.QMessageBox.Ok :
+                return
         if self.account_setting_widget.isHidden():
             self.config = {
                 'sync_interval' :  str(self.sync_interval_option[self.cb_sync_interval.currentText()]),
@@ -255,6 +245,9 @@ class setting_window(QtWidgets.QWidget):
             umn_config.write_config(self.config)
             self.reflect_auto_startup()
             self.hide()
+    def show(self) -> None:
+        self.set_widget_state()
+        return super().show()
     def cancel(self):
         if self.account_setting_widget.isHidden():
             self.hide()
