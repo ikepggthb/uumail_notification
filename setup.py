@@ -20,7 +20,7 @@ upgrade_code = "{06b635d3-7f04-4f9d-a18a-8417ece45119}"
 if sys.platform == 'win32' : base = 'Win32GUI'
  
 exe = Executable(script = 'main.py',
-                 base = base, icon='icon\\uumail.ico')
+                 base = base, icon='icon\\uumail.ico',targetName="uumail_notification.exe")
 
 shortcut_table = [
     ("DesktopShortcut",        # Shortcut
